@@ -68,9 +68,12 @@ exports.addUser = addUser;
  */
 const getAllReservations = function (guest_id, limit = 10) {
   const command = `
-  SELECT * FROM reservations r 
-  JOIN users u ON r.guest_id = u.id
-  WHERE u.id = $1 AND (r.start_date <> Now() OR r.end_date <> Now())
+  SELECT r.*,  p.*, AVG(pr.rating) as average_rating
+  FROM reservations r 
+  JOIN properties p ON r.property_id = p.id
+  JOIN property_reviews pr ON pr.reservation_id = r.id
+  WHERE r.guest_id = $1 AND (r.start_date <> Now()::DATE OR r.end_date <> Now()::DATE)
+  GROUP BY p.id, r.id
   ORDER BY r.start_date DESC
   LIMIT $2`;
   const values = [guest_id, limit];
